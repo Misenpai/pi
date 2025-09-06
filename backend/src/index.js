@@ -12,22 +12,35 @@ const prisma = new PrismaClient();
 app.use(express.json());
 app.use(cors({ origin: "http://localhost:3000" }));
 
-// Login route
+// server.js
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
+
   try {
     const user = await prisma.pI.findUnique({ where: { username } });
+
     if (!user || user.password !== password) {
       return res
         .status(401)
         .json({ success: false, message: "Invalid credentials" });
     }
+
+    // Get all project codes for this PI
+    const projectRelations = await prisma.pIProjectRelation.findMany({
+      where: { username: user.username },
+    });
+
+    const projectCodes = projectRelations.map(
+      (relation) => relation.projectCode,
+    );
+
     res.json({
       success: true,
       username: user.username,
-      projectCode: user.projectCode,
+      projectCodes: projectCodes, // Send ALL project codes
     });
   } catch (error) {
+    console.error("Login error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
