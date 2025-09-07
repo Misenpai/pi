@@ -10,7 +10,7 @@ const app = express();
 const prisma = new PrismaClient();
 
 app.use(express.json());
-app.use(cors({ origin: "http://localhost:3000" }));
+app.use(cors({ origin: "http://localhost:3060" }));
 
 // server.js
 app.post("/api/login", async (req, res) => {
