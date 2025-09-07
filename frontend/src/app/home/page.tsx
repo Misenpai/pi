@@ -29,22 +29,21 @@ export default function Home() {
     if (user && user.projectCodes) {
       setRedirecting(true);
 
-      // Generate a temporary token for secure transfer
-      const transferToken = btoa(
-        JSON.stringify({
-          username: user.username,
-          projectCodes: user.projectCodes,
-          timestamp: Date.now(),
-          signature: btoa(user.username + Date.now()), // Simple signature
-        }),
-      );
+      // Create simpler token data
+      const tokenData = {
+        username: user.username,
+        projectCodes: user.projectCodes,
+        timestamp: Date.now(),
+      };
+
+      // Simple base64 encoding (no double encoding)
+      const transferToken = btoa(JSON.stringify(tokenData));
 
       // Target attendance app URL
-      const targetUrl =
-        process.env.NEXT_PUBLIC_ATTENDANCE_APP_URL || "http://localhost:3001";
+      const targetUrl = process.env.NEXT_PUBLIC_ATTENDANCE_APP_URL!;
 
-      // Create transfer URL with token
-      const redirectUrl = `${targetUrl}/auth/sso?token=${encodeURIComponent(transferToken)}`;
+      // Create transfer URL with token (no additional encoding needed)
+      const redirectUrl = `${targetUrl}/sso?token=${transferToken}`;
 
       const debugData = {
         targetUrl,
@@ -52,11 +51,13 @@ export default function Home() {
         projectCodes: user.projectCodes,
         projectCodesCount: user.projectCodes.length,
         fullRedirectUrl: redirectUrl,
-        transferToken: transferToken.substring(0, 50) + "...", // Show partial token for debug
+        transferToken: transferToken.substring(0, 50) + "...",
+        tokenData, // Add this for debugging
       };
 
       setDebugInfo(debugData);
       console.log("Debug Info:", debugData);
+      console.log("Full token:", transferToken);
 
       // Redirect after showing debug info
       setTimeout(() => {
